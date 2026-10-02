@@ -1,0 +1,131 @@
+name: AegisML CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
+jobs:
+  # ── Lint ────────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install ruff
+        run: pip install ruff==0.4.4
+
+      - name: Lint backend
+        run: ruff check aegisml/backend/aegisml/ aegisml/ml/ aegisml/tests/ --ignore E501,F401
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: aegisml/frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: aegisml/frontend
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+        working-directory: aegisml/frontend
+
+  # ── Backend tests ───────────────────────────────────────────────────────────
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install backend deps
+        run: pip install -e ".[dev]"
+        working-directory: aegisml/backend
+
+      - name: Run tests
+        run: |
+          cd aegisml
+          python -m pytest tests/ -v \
+            --cov=backend/aegisml \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            -x
+        env:
+          DATABASE_URL: sqlite:///./test_aegisml.db
+          MLFLOW_TRACKING_URI: sqlite:///./test_mlruns.db
+          AEGISML_ENVIRONMENT: development
+          LLM_FALLBACK_MODE: rule_based
+          OPENAI_API_KEY: ""
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: aegisml/coverage.xml
+          fail_ci_if_error: false
+
+  # ── ML pipeline test ────────────────────────────────────────────────────────
+  test-ml-pipeline:
+    name: ML Pipeline Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install ML deps
+        run: |
+          pip install scikit-learn==1.4.2 pandas==2.2.2 numpy==1.26.4 \
+                      scipy==1.13.0 mlflow==2.13.0
+
+      - name: Generate dataset
+        run: python aegisml/ml/data/generate_dataset.py --version v1 --n-samples 2000
+
+      - name: Run data validation
+        run: python aegisml/ml/validation/data_validator.py aegisml/ml/data/raw/train_v1.csv
+
+      - name: Run training (no MLflow registration in CI)
+        run: |
+          cd aegisml/backend
+          python ../ml/training/train.py \
+            --dataset-version v1 \
+            --no-register
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///./ci_mlruns.db
+          PYTHONPATH: .
+
+  # ── Docker build validation ──────────────────────────────────────────────────
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t aegisml-backend:ci ./aegisml/backend
+
+      - name: Build frontend image
+        run: docker build -t aegisml-frontend:ci ./aegisml/frontend

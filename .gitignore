@@ -1,0 +1,68 @@
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pyc
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env_local
+
+# ── Secrets / config ─────────────────────────────────────────────────────────
+.env
+# .env.example is intentionally kept (no secrets in it)
+
+# ── Databases (local dev only) ────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+test_aegisml.db
+test_mlruns.db
+aegisml_local.db
+mlruns_local.db
+mlruns.db
+
+# ── MLflow artifacts ──────────────────────────────────────────────────────────
+mlruns/
+mlartifacts/
+
+# ── ML artifacts and data ─────────────────────────────────────────────────────
+aegisml/ml/data/raw/*.csv
+aegisml/ml/data/raw/metadata_*.json
+aegisml/ml/artifacts/*.pkl
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+aegisml/frontend/node_modules/
+aegisml/frontend/dist/
+aegisml/frontend/.vite/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── DVC ───────────────────────────────────────────────────────────────────────
+.dvc/cache/
+.dvc/tmp/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/

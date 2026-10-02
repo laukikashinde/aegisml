@@ -1,0 +1,30 @@
+{
+  "version": "v1",
+  "dataset": "adult_income",
+  "n_samples": 10000,
+  "seed": 42,
+  "target": "income_above_50k",
+  "features": [
+    "age",
+    "fnlwgt",
+    "education_num",
+    "capital_gain",
+    "capital_loss",
+    "hours_per_week",
+    "workclass",
+    "education",
+    "marital_status",
+    "occupation",
+    "relationship",
+    "race",
+    "sex",
+    "native_country"
+  ],
+  "positive_rate": 0.3541,
+  "splits": {
+    "train": "C:\\Users\\lauki\\OneDrive\\Desktop\\Mlops\\aegisml\\ml\\data\\raw\\train_v1.csv",
+    "val": "C:\\Users\\lauki\\OneDrive\\Desktop\\Mlops\\aegisml\\ml\\data\\raw\\val_v1.csv",
+    "test": "C:\\Users\\lauki\\OneDrive\\Desktop\\Mlops\\aegisml\\ml\\data\\raw\\test_v1.csv"
+  },
+  "drift_config": {}
+}

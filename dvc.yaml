@@ -1,0 +1,43 @@
+stages:
+  generate_data:
+    cmd: python ml/data/generate_dataset.py --version v1 --n-samples 10000
+    deps:
+      - ml/data/generate_dataset.py
+    outs:
+      - ml/data/raw/train_v1.csv
+      - ml/data/raw/val_v1.csv
+      - ml/data/raw/test_v1.csv
+      - ml/data/raw/metadata_v1.json
+
+  validate_data:
+    cmd: python ml/validation/data_validator.py ml/data/raw/train_v1.csv
+    deps:
+      - ml/validation/data_validator.py
+      - ml/data/raw/train_v1.csv
+    outs:
+      - ml/data/reports/validation_v1.json
+
+  train:
+    cmd: >
+      cd backend &&
+      python ../ml/training/train.py --dataset-version v1
+    deps:
+      - ml/training/train.py
+      - ml/preprocessing/pipeline.py
+      - ml/data/raw/train_v1.csv
+      - ml/data/raw/val_v1.csv
+      - ml/data/raw/test_v1.csv
+    outs:
+      - ml/artifacts/preprocessor_v1.pkl
+    metrics:
+      - ml/metrics/train_results_v1.json:
+          cache: false
+
+  generate_drift_data:
+    cmd: python ml/data/generate_dataset.py --version v2_drift --drift-type income
+    deps:
+      - ml/data/generate_dataset.py
+    outs:
+      - ml/data/raw/train_v2_drift.csv
+      - ml/data/raw/val_v2_drift.csv
+      - ml/data/raw/test_v2_drift.csv

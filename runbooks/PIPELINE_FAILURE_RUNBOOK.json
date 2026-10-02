@@ -1,0 +1,20 @@
+{
+  "runbook_id": "PIPELINE_FAILURE_RUNBOOK",
+  "incident_type": "PIPELINE_FAILURE",
+  "title": "Pipeline Failure Runbook",
+  "description": "Investigation and remediation steps for training pipeline failures.",
+  "steps": [
+    "1. Retrieve recent pipeline run logs and identify the failed stage.",
+    "2. Classify error: data_error | resource_error | code_error | transient_error.",
+    "3. If transient (network, timeout): retry pipeline once.",
+    "4. If data_error: run data validation and fix before retry.",
+    "5. If code_error: inspect recent git commits for regressions.",
+    "6. If resource_error: check system health (CPU, memory, disk).",
+    "7. Submit RETRY_PIPELINE through policy engine if retry count < 3.",
+    "8. If retry fails: escalate for human review.",
+    "9. Document root cause and resolution."
+  ],
+  "possible_actions": ["RETRY_PIPELINE", "REQUEST_HUMAN_APPROVAL"],
+  "success_criteria": "Pipeline completes without error.",
+  "escalation": "Manual investigation if 3 consecutive failures."
+}

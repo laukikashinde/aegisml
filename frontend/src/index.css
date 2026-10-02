@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { @apply bg-slate-100; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+}
+
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-white border border-slate-200 rounded-2xl p-5 shadow-sm;
+  }
+  .card-pastel-purple {
+    @apply bg-violet-50 border border-violet-200 rounded-2xl p-5;
+  }
+  .card-pastel-blue {
+    @apply bg-blue-50 border border-blue-200 rounded-2xl p-5;
+  }
+  .card-pastel-green {
+    @apply bg-emerald-50 border border-emerald-200 rounded-2xl p-5;
+  }
+  .card-pastel-rose {
+    @apply bg-rose-50 border border-rose-200 rounded-2xl p-5;
+  }
+  .card-pastel-amber {
+    @apply bg-amber-50 border border-amber-200 rounded-2xl p-5;
+  }
+  .card-pastel-sky {
+    @apply bg-sky-50 border border-sky-200 rounded-2xl p-5;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+           bg-violet-600 hover:bg-violet-700 text-white shadow-sm hover:shadow-md;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+           bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm;
+  }
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+           bg-rose-500 hover:bg-rose-600 text-white shadow-sm;
+  }
+  .btn-success {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+           bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+           text-slate-500 hover:text-slate-700 hover:bg-slate-100;
+  }
+
+  /* Typography helpers */
+  .page-title {
+    @apply text-2xl font-semibold text-slate-800 tracking-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-slate-500 mt-0.5;
+  }
+  .section-title {
+    @apply text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3;
+  }
+  .card-title {
+    @apply text-sm font-semibold text-slate-700;
+  }
+  .metric-value {
+    @apply text-2xl font-bold tabular-nums text-slate-800;
+  }
+  .metric-label {
+    @apply text-xs text-slate-500 font-medium;
+  }
+
+  /* Timeline */
+  .timeline-dot {
+    @apply w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1;
+  }
+  .timeline-line {
+    @apply w-px flex-1 bg-slate-200 my-1 mx-auto;
+  }
+
+  /* Table */
+  .data-table {
+    @apply w-full text-sm;
+  }
+  .data-table th {
+    @apply text-left text-xs font-semibold text-slate-500 uppercase tracking-wider
+           px-4 py-3 bg-slate-50 border-b border-slate-200;
+  }
+  .data-table td {
+    @apply px-4 py-3 border-b border-slate-100;
+  }
+  .data-table tr:last-child td {
+    @apply border-0;
+  }
+  .data-table tbody tr {
+    @apply hover:bg-slate-50 transition-colors;
+  }
+
+  /* Status pills */
+  .pill-green  { @apply badge bg-emerald-100 text-emerald-700; }
+  .pill-red    { @apply badge bg-rose-100    text-rose-700; }
+  .pill-yellow { @apply badge bg-amber-100   text-amber-700; }
+  .pill-blue   { @apply badge bg-blue-100    text-blue-700; }
+  .pill-purple { @apply badge bg-violet-100  text-violet-700; }
+  .pill-gray   { @apply badge bg-slate-100   text-slate-600; }
+  .pill-sky    { @apply badge bg-sky-100     text-sky-700; }
+}

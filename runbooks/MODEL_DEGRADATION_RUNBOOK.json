@@ -1,0 +1,21 @@
+{
+  "runbook_id": "MODEL_DEGRADATION_RUNBOOK",
+  "incident_type": "MODEL_DEGRADATION",
+  "title": "Model Performance Degradation Runbook",
+  "description": "Steps for diagnosing and remediating model performance degradation.",
+  "steps": [
+    "1. Collect model performance metrics for the current window.",
+    "2. Compare against historical metrics to establish degradation magnitude.",
+    "3. Check whether data drift is present (co-occurring drift often causes degradation).",
+    "4. Check for recent deployment events or dataset changes.",
+    "5. If drift co-occurs: treat as DATA_DRIFT incident, proceed to retraining.",
+    "6. If no drift: investigate data quality and pipeline issues.",
+    "7. If retraining is warranted: submit RETRAIN_MODEL through policy engine.",
+    "8. Evaluate candidate against quality gates.",
+    "9. Deploy via canary if gates pass.",
+    "10. Monitor and promote or rollback."
+  ],
+  "possible_actions": ["RETRAIN_MODEL", "START_CANARY", "ROLLBACK_MODEL"],
+  "success_criteria": "F1 >= threshold for 3 consecutive monitoring windows.",
+  "escalation": "Escalate if F1 does not recover after retraining."
+}

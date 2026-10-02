@@ -1,0 +1,75 @@
+{
+  "title": "AegisML Platform",
+  "uid": "aegisml-main",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "API Request Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(aegisml_requests_total[1m])",
+          "legendFormat": "{{method}} {{endpoint}} {{status}}",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "API Latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(aegisml_request_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95 latency",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Total Incidents",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "increase(aegisml_incidents_total[1h])",
+          "legendFormat": "{{type}} / {{severity}}",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Agent Invocations",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "increase(aegisml_agent_invocations_total[1h])",
+          "legendFormat": "{{outcome}}",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Remediations",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "increase(aegisml_remediations_total[1h])",
+          "legendFormat": "{{action}} / {{outcome}}",
+          "datasource": "Prometheus"
+        }
+      ]
+    }
+  ],
+  "time": { "from": "now-3h", "to": "now" }
+}

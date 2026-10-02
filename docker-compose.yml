@@ -1,0 +1,163 @@
+version: "3.9"
+
+# ── AegisML — Autonomous Self-Healing MLOps Platform ─────────────────────────
+# Run with:  docker compose up --build
+# Stop with: docker compose down -v
+
+networks:
+  aegisml:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mlflow_data:
+  prometheus_data:
+  grafana_data:
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: aegisml-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-aegisml}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegisml_secret}
+      POSTGRES_DB:       ${POSTGRES_DB:-aegisml}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aegisml}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aegisml
+
+  # ── MLflow tracking server ──────────────────────────────────────────────────
+  mlflow:
+    image: python:3.11-slim
+    container_name: aegisml-mlflow
+    restart: unless-stopped
+    command: >
+      bash -c "
+        pip install mlflow==2.13.0 psycopg2-binary --quiet &&
+        mlflow server
+          --backend-store-uri postgresql://${POSTGRES_USER:-aegisml}:${POSTGRES_PASSWORD:-aegisml_secret}@postgres:5432/mlflow
+          --artifacts-destination /mlflow-artifacts
+          --host 0.0.0.0
+          --port 5001
+      "
+    environment:
+      MLFLOW_TRACKING_URI: http://localhost:5001
+    volumes:
+      - mlflow_data:/mlflow-artifacts
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5001/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    networks:
+      - aegisml
+
+  # ── AegisML Backend ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aegisml-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL:           postgresql://${POSTGRES_USER:-aegisml}:${POSTGRES_PASSWORD:-aegisml_secret}@postgres:5432/${POSTGRES_DB:-aegisml}
+      MLFLOW_TRACKING_URI:    http://mlflow:5001
+      MLFLOW_EXPERIMENT_NAME: ${MLFLOW_EXPERIMENT_NAME:-aegisml-churn}
+      MLFLOW_MODEL_NAME:      ${MLFLOW_MODEL_NAME:-churn-classifier}
+      OPENAI_API_KEY:         ${OPENAI_API_KEY:-}
+      LLM_MODEL:              ${LLM_MODEL:-gpt-4o-mini}
+      LLM_FALLBACK_MODE:      ${LLM_FALLBACK_MODE:-rule_based}
+      AEGISML_API_KEY:        ${AEGISML_API_KEY:-dev-api-key-change-in-production}
+      AEGISML_SECRET_KEY:     ${AEGISML_SECRET_KEY:-change-this-secret-key}
+      AEGISML_ENVIRONMENT:    ${AEGISML_ENVIRONMENT:-development}
+      LOG_LEVEL:              ${LOG_LEVEL:-INFO}
+      DRIFT_THRESHOLD:        ${DRIFT_THRESHOLD:-0.20}
+      F1_THRESHOLD:           ${F1_THRESHOLD:-0.82}
+      LATENCY_SLA_MS:         ${LATENCY_SLA_MS:-200}
+      CORS_ORIGINS:           "http://localhost:5173,http://localhost:3000"
+    volumes:
+      - ../ml:/app/ml
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    networks:
+      - aegisml
+
+  # ── AegisML Frontend ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aegisml-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - aegisml
+
+  # ── Prometheus ──────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: aegisml-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+    networks:
+      - aegisml
+
+  # ── Grafana ─────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: aegisml-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP:     "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/aegisml.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - aegisml

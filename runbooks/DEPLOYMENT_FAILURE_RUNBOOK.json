@@ -1,0 +1,19 @@
+{
+  "runbook_id": "DEPLOYMENT_FAILURE_RUNBOOK",
+  "incident_type": "DEPLOYMENT_FAILURE",
+  "title": "Deployment Failure Runbook",
+  "description": "Procedures for handling failed or unhealthy canary deployments.",
+  "steps": [
+    "1. Stop canary traffic immediately.",
+    "2. Collect canary health metrics: error rate, latency, performance.",
+    "3. Identify which health gate failed (latency / error rate / performance).",
+    "4. Initiate ROLLBACK_MODEL to restore previous production model.",
+    "5. Verify previous model is healthy and serving correctly.",
+    "6. Update incident with rollback reason and gate failure details.",
+    "7. Create post-incident record for future analysis.",
+    "8. Reject candidate model version in MLflow registry."
+  ],
+  "possible_actions": ["ROLLBACK_MODEL"],
+  "success_criteria": "Previous stable model restored and serving with healthy metrics.",
+  "escalation": "If rollback fails, page on-call operator immediately."
+}

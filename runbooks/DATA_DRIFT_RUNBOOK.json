@@ -1,0 +1,24 @@
+{
+  "runbook_id": "DATA_DRIFT_RUNBOOK",
+  "incident_type": "DATA_DRIFT",
+  "title": "Data Drift Remediation Runbook",
+  "description": "Standard procedures for investigating and resolving data drift incidents.",
+  "steps": [
+    "1. Collect drift report and identify affected features.",
+    "2. Determine drift severity (LOW / MEDIUM / HIGH / CRITICAL).",
+    "3. Compare current dataset version against previous baseline.",
+    "4. Check if model performance has degraded alongside drift.",
+    "5. If severity >= MEDIUM and F1 degraded: recommend RETRAIN_MODEL.",
+    "6. If severity LOW and F1 still acceptable: monitor, do not retrain.",
+    "7. Submit retraining action through policy engine.",
+    "8. Evaluate candidate model against production via quality gates.",
+    "9. If gates pass: proceed with canary deployment.",
+    "10. Monitor canary for latency / error rate / performance.",
+    "11. If healthy: promote to 100% traffic.",
+    "12. If unhealthy: rollback to previous production model.",
+    "13. Update incident with resolution notes."
+  ],
+  "possible_actions": ["RETRAIN_MODEL", "START_CANARY", "ROLLBACK_MODEL", "REQUEST_HUMAN_APPROVAL"],
+  "success_criteria": "Drift score returns below threshold AND model F1 >= threshold for 3 consecutive windows.",
+  "escalation": "If retraining fails twice, escalate to human operator."
+}
